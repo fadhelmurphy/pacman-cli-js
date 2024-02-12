@@ -12,6 +12,8 @@ class PacmanGame {
     this.fruits = [];
     this.score = 0;
     this.lives = lives;
+    this.lastMove = ''; // Variable untuk menyimpan input terakhir
+    this.ghostHome = { x: Math.floor(cols / 2), y: Math.floor(rows / 2) }; // Markas utama ghost
   }
 
   generateWalls() {
@@ -65,12 +67,19 @@ class PacmanGame {
     return this.fruits.some(fruit => fruit.x === x && fruit.y === y);
   }
 
+  // Fungsi untuk mengecek apakah suatu posisi adalah markas utama ghost
+  isGhostHome(x, y) {
+    return this.ghostHome.x === x && this.ghostHome.y === y;
+  }
+
   printBoard() {
     for (let i = 0; i < this.rows; i++) {
       let row = '';
       for (let j = 0; j < this.cols; j++) {
         if (this.pacman.x === j && this.pacman.y === i) {
           row += chalk.yellow('C '); // Pacman
+        } else if (this.isGhostHome(j, i)) {
+          row += chalk.bgMagenta('GH '); // Ghost Home
         } else if (this.isGhost(j, i)) {
         const ghost = this.ghosts.find(ghost => ghost.x === j && ghost.y === i);
         row += chalk[ghost.color]('G '); // Ghost with specified color
@@ -86,15 +95,22 @@ class PacmanGame {
       }
       console.log(row);
     }
+    console.log(chalk.italic.cyan(`GH: Ghost Home, F: Fruits/Power, G: Ghost, C: Pacman`))
     console.log(chalk.blue(`Score: ${this.score} Lives: ${this.lives} Power Time: ${this.pacman.powerTime}`));
   }
-
+  
   movePacman() {
     if (this.pacman.powerTime > 0) {
       this.pacman.powerTime--;
     }
 
-    const direction = prompt('Tekan tombol (W/A/S/D) untuk bergerak dan Q untuk keluar : ');
+    let direction = prompt('Tekan tombol (W/A/S/D) untuk bergerak dan Q untuk keluar : ');
+    // Jika Enter ditekan, gunakan input terakhir
+    if (direction === '') {
+      direction = this.lastMove;
+    } else {
+      this.lastMove = direction; // Perbarui input terakhir jika bukan Enter
+    }
     switch (direction.toLowerCase()) {
       case 'w':
         if (!this.isWall(this.pacman.x, this.pacman.y - 1)) {
@@ -139,16 +155,27 @@ class PacmanGame {
     }
   }
 
+  checkGhostEaten(ghost) {
+    return this.pacman.x === ghost.x && this.pacman.y === ghost.y;
+  }
+
   moveGhosts() {
     this.ghosts.forEach((ghost) => {
       const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
 
-      if (direction === 'horizontal') {
-        ghost.x += Math.random() < 0.5 ? -1 : 1;
-        ghost.x = Math.max(0, Math.min(this.cols - 1, ghost.x));
+      // Jika ghost termakan oleh Pacman dan power time di atas 0, kembalikan ghost ke markas
+      if (this.checkGhostEaten(ghost) && this.pacman.powerTime > 0) {
+        ghost.x = this.ghostHome.x;
+        ghost.y = this.ghostHome.y;
       } else {
-        ghost.y += Math.random() < 0.5 ? -1 : 1;
-        ghost.y = Math.max(0, Math.min(this.rows - 1, ghost.y));
+        // Jika tidak, lanjutkan pergerakan biasa
+        if (direction === 'horizontal') {
+          ghost.x += Math.random() < 0.5 ? -1 : 1;
+          ghost.x = Math.max(0, Math.min(this.cols - 1, ghost.x));
+        } else {
+          ghost.y += Math.random() < 0.5 ? -1 : 1;
+          ghost.y = Math.max(0, Math.min(this.rows - 1, ghost.y));
+        }
       }
     });
   }
@@ -193,7 +220,7 @@ class PacmanGame {
 }
 
 // Inisialisasi game dengan ukuran 20x20, 3 nyawa, dan 3 hantu
-const game = new PacmanGame(20, 20, 3, 3);
+const game = new PacmanGame(15, 15, 3, 3);
 
 // Mulai permainan
 game.play();

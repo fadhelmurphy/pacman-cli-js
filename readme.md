@@ -1,4 +1,4 @@
-![](assets/20240213_012715_demo.png)
+![demo](assets/20240213_020602_demo.png)
 
 # Pacman CLI Game
 
