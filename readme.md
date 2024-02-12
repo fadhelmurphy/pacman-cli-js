@@ -1,3 +1,5 @@
+![](assets/20240213_012715_demo.png)
+
 # Pacman CLI Game
 
 A simple Pacman game in the command line interface (CLI) using JavaScript and the prompt-sync library.
