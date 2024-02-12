@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/pacman.js"
+    "start": "node src/pacman.js",
+    "multiplayer": "node src/pacman_multiplayer.js"
   },
   "dependencies": {
     "chalk": "^4.1.2",
