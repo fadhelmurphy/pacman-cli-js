@@ -29,15 +29,17 @@ class PacmanGame {
 
   generateDots() {
     const dots = [];
-    for (let i = 0; i < Math.floor(this.rows * this.cols * 0.2); i++) {
-      let dot;
-      do {
-        dot = { x: Math.floor(Math.random() * this.cols), y: Math.floor(Math.random() * this.rows) };
-      } while (this.isWall(dot.x, dot.y) || this.isDot(dot.x, dot.y) || (dot.x === 0 && dot.y === 0));
-      dots.push(dot);
+    const totalDots = Math.floor(this.rows * this.cols * 0.9); // Ambil hampir 90% dari total sel pada board
+    
+    for (let i = 0; i < totalDots; i++) {
+        let dot;
+        do {
+            dot = { x: Math.floor(Math.random() * this.cols), y: Math.floor(Math.random() * this.rows) };
+        } while (this.isWall(dot.x, dot.y) || this.isDot(dot.x, dot.y) || (dot.x === 0 && dot.y === 0));
+        dots.push(dot);
     }
     return dots;
-  }
+}
 
   generateGhosts(numGhosts) {
     const ghosts = [];
@@ -103,6 +105,11 @@ class PacmanGame {
     return pacmans;
   }
 
+    // Fungsi untuk mengecek apakah suatu posisi adalah markas utama ghost
+    isGhostHome(x, y) {
+      return this.ghostHome.x === x && this.ghostHome.y === y;
+    }
+
   printBoard() {
     for (let i = 0; i < this.rows; i++) {
       let row = '';
@@ -111,6 +118,8 @@ class PacmanGame {
         if (pacman) {
           const color = pacman.isBot ? this.getBotColor(pacman.botIndex) : 'yellow';
           row += this.getColorText(color, `${pacman.isBot ? 'B ' : 'C '}`);
+        } else if (this.isGhostHome(j, i)) {
+          row += chalk.bgMagenta('GH '); // Ghost Home
         } else if (this.ghosts.some(ghost => ghost.x === j && ghost.y === i)) {
           const ghost = this.ghosts.find(ghost => ghost.x === j && ghost.y === i);
           row += chalk[ghost.color]('G '); // Ghost with specified color
@@ -126,7 +135,7 @@ class PacmanGame {
       }
       console.log(row);
     }
-    console.log(chalk.italic.cyan(`GH: Ghost Home, F: Fruits/Power, G: Ghost, C: Pacman`));
+    console.log(chalk.italic.cyan(`GH: Ghost Home, F: Fruits/Power, X: Wall, G: Ghost, C: Pacman`));
 console.log(chalk.blue(`Score: ${this.pacmans[0].score} Lives: ${this.pacmans[0].lives} Power Time: ${this.pacmans[0].powerTime}`));
 
 // Print information for bot pacmans
@@ -222,7 +231,15 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
 
       // Check for collision with ghosts
       if (this.checkGhostCollision(pacman)) {
-        this.updateScore(pacman, index);
+        if (pacman.powerTime > 0) {
+          // Jika power time pacman lebih dari 0, maka ghost kembali ke markas
+          this.ghosts.forEach((ghost) => {
+            ghost.x = this.ghostHome.x;
+            ghost.y = this.ghostHome.y;
+          });
+        } else {
+          this.updateScore(pacman, index);
+        }
       }
     });
   }
@@ -239,14 +256,32 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
     this.ghosts.forEach((ghost) => {
       const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
 
+      let newGhostX = ghost.x;
+      let newGhostY = ghost.y;
+
       if (direction === 'horizontal') {
-        ghost.x += Math.random() < 0.5 ? -1 : 1;
-        ghost.x = Math.max(0, Math.min(this.cols - 1, ghost.x));
+        newGhostX += Math.random() < 0.5 ? -1 : 1;
+        newGhostX = Math.max(0, Math.min(this.cols - 1, newGhostX));
+
+        // Check if the next position is a wall, if true, don't update the position
+        if (!this.isWall(newGhostX, ghost.y)) {
+          ghost.x = newGhostX;
+        }
       } else {
-        ghost.y += Math.random() < 0.5 ? -1 : 1;
-        ghost.y = Math.max(0, Math.min(this.rows - 1, ghost.y));
+        newGhostY += Math.random() < 0.5 ? -1 : 1;
+        newGhostY = Math.max(0, Math.min(this.rows - 1, newGhostY));
+
+        // Check if the next position is a wall, if true, don't update the position
+        if (!this.isWall(ghost.x, newGhostY)) {
+          ghost.y = newGhostY;
+        }
       }
     });
+  }
+
+  returnGhostToHome(ghost) {
+    ghost.x = this.ghostHome.x;
+    ghost.y = this.ghostHome.y;
   }
 
   checkGhostCollision(pacman) {

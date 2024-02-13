@@ -26,15 +26,17 @@ class PacmanGame {
 
   generateDots() {
     const dots = [];
-    for (let i = 0; i < Math.floor(this.rows * this.cols * 0.2); i++) {
-      let dot;
-      do {
-        dot = { x: Math.floor(Math.random() * this.cols), y: Math.floor(Math.random() * this.rows) };
-      } while (this.isWall(dot.x, dot.y) || this.isDot(dot.x, dot.y) || (dot.x === 0 && dot.y === 0));
-      dots.push(dot);
+    const totalDots = Math.floor(this.rows * this.cols * 0.9); // Ambil hampir 90% dari total sel pada board
+    
+    for (let i = 0; i < totalDots; i++) {
+        let dot;
+        do {
+            dot = { x: Math.floor(Math.random() * this.cols), y: Math.floor(Math.random() * this.rows) };
+        } while (this.isWall(dot.x, dot.y) || this.isDot(dot.x, dot.y) || (dot.x === 0 && dot.y === 0));
+        dots.push(dot);
     }
     return dots;
-  }
+}
 
   generateGhosts(numGhosts) {
     const ghosts = [];
@@ -95,7 +97,7 @@ class PacmanGame {
       }
       console.log(row);
     }
-    console.log(chalk.italic.cyan(`GH: Ghost Home, F: Fruits/Power, G: Ghost, C: Pacman`))
+    console.log(chalk.italic.cyan(`GH: Ghost Home, F: Fruits/Power, X: Wall, G: Ghost, C: Pacman`))
     console.log(chalk.blue(`Score: ${this.score} Lives: ${this.lives} Power Time: ${this.pacman.powerTime}`));
   }
   
@@ -161,23 +163,43 @@ class PacmanGame {
 
   moveGhosts() {
     this.ghosts.forEach((ghost) => {
-      const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
-
       // Jika ghost termakan oleh Pacman dan power time di atas 0, kembalikan ghost ke markas
       if (this.checkGhostEaten(ghost) && this.pacman.powerTime > 0) {
-        ghost.x = this.ghostHome.x;
-        ghost.y = this.ghostHome.y;
+        this.returnGhostToHome(ghost);
       } else {
         // Jika tidak, lanjutkan pergerakan biasa
-        if (direction === 'horizontal') {
-          ghost.x += Math.random() < 0.5 ? -1 : 1;
-          ghost.x = Math.max(0, Math.min(this.cols - 1, ghost.x));
-        } else {
-          ghost.y += Math.random() < 0.5 ? -1 : 1;
-          ghost.y = Math.max(0, Math.min(this.rows - 1, ghost.y));
-        }
+        this.moveGhost(ghost);
       }
     });
+  }
+
+  returnGhostToHome(ghost) {
+    ghost.x = this.ghostHome.x;
+    ghost.y = this.ghostHome.y;
+  }
+
+  moveGhost(ghost) {
+    const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
+
+    if (direction === 'horizontal') {
+      this.moveHorizontal(ghost);
+    } else {
+      this.moveVertical(ghost);
+    }
+  }
+
+  moveHorizontal(ghost) {
+    const newGhostX = ghost.x + (Math.random() < 0.5 ? -1 : 1);
+    if (!this.isWall(newGhostX, ghost.y)) {
+      ghost.x = Math.max(0, Math.min(this.cols - 1, newGhostX));
+    }
+  }
+
+  moveVertical(ghost) {
+    const newGhostY = ghost.y + (Math.random() < 0.5 ? -1 : 1);
+    if (!this.isWall(ghost.x, newGhostY)) {
+      ghost.y = Math.max(0, Math.min(this.rows - 1, newGhostY));
+    }
   }
 
   checkCollision() {
@@ -186,14 +208,22 @@ class PacmanGame {
       (this.pacman.powerTime === 0 && this.ghosts.some(ghost => this.pacman.x === ghost.x && this.pacman.y === ghost.y))
     );
   }
-  
 
   updateScore() {
     if (this.checkCollision()) {
-      this.lives--;
-      if (this.lives <= 0) {
-        console.log(chalk.red('Game Over! No lives left.'));
-        process.exit();
+      if (this.pacman.powerTime > 0) {
+        // Jika power time pacman lebih dari 0, ghost kembali ke markas
+        this.ghosts.forEach((ghost) => {
+          ghost.x = this.ghostHome.x;
+          ghost.y = this.ghostHome.y;
+        });
+      } else {
+        // Jika tidak, kurangi nyawa
+        this.lives--;
+        if (this.lives <= 0) {
+          console.log(chalk.red('Game Over! No lives left.'));
+          process.exit();
+        }
       }
     }
   }
