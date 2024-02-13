@@ -166,26 +166,50 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
     return pacmanColors[index % pacmanColors.length];
   }
 
+  moveGhost(ghost) {
+    const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
+  
+    if (direction === 'horizontal') {
+      this.moveHorizontal(ghost);
+    } else {
+      this.moveVertical(ghost);
+    }
+  }
+
+  moveHorizontal(ghost) {
+    const newGhostX = ghost.x + (Math.random() < 0.5 ? -1 : 1);
+    if (!this.isWall(newGhostX, ghost.y)) {
+      ghost.x = Math.max(0, Math.min(this.cols - 1, newGhostX));
+    }
+  }
+  
+  moveVertical(ghost) {
+    const newGhostY = ghost.y + (Math.random() < 0.5 ? -1 : 1);
+    if (!this.isWall(ghost.x, newGhostY)) {
+      ghost.y = Math.max(0, Math.min(this.rows - 1, newGhostY));
+    }
+  }
+
   movePacmans() {
     this.pacmans.forEach((pacman, index) => {
       if (pacman.powerTime > 0) {
         pacman.powerTime--;
       }
-
+  
       let direction;
       if (pacman.isBot) {
         direction = this.getBotDirection(pacman);
       } else {
         direction = prompt('Tekan tombol (W/A/S/D) untuk bergerak dan Q untuk keluar: ');
       }
-
+  
       // Jika Enter ditekan, gunakan input terakhir
       if (direction === '') {
         direction = pacman.lastMove;
       } else {
         pacman.lastMove = direction; // Perbarui input terakhir jika bukan Enter
       }
-
+  
       switch (direction.toLowerCase()) {
         case 'w':
           if (!this.isWall(pacman.x, pacman.y - 1)) {
@@ -213,14 +237,14 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
         default:
           console.log('Invalid move!');
       }
-
+  
       // Check for eating dots
       const eatenDotIndex = this.dots.findIndex(dot => dot.x === pacman.x && dot.y === pacman.y);
       if (eatenDotIndex !== -1) {
         this.dots.splice(eatenDotIndex, 1);
         pacman.score++;
       }
-
+  
       // Check for eating fruits
       const eatenFruitIndex = this.fruits.findIndex(fruit => fruit.x === pacman.x && fruit.y === pacman.y);
       if (eatenFruitIndex !== -1) {
@@ -228,21 +252,20 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
         pacman.score += 5; // Increase score for eating fruit
         pacman.powerTime = 10; // Set power time to 10 steps
       }
-
+  
       // Check for collision with ghosts
-      if (this.checkGhostCollision(pacman)) {
+      const collidedGhost = this.checkGhostCollision(pacman);
+      if (collidedGhost) {
         if (pacman.powerTime > 0) {
           // Jika power time pacman lebih dari 0, maka ghost kembali ke markas
-          this.ghosts.forEach((ghost) => {
-            ghost.x = this.ghostHome.x;
-            ghost.y = this.ghostHome.y;
-          });
+          this.returnGhostToHome(collidedGhost);
         } else {
           this.updateScore(pacman, index);
         }
       }
     });
   }
+  
 
 
   getBotDirection(botPacman) {
@@ -254,30 +277,16 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
 
   moveGhosts() {
     this.ghosts.forEach((ghost) => {
-      const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
-
-      let newGhostX = ghost.x;
-      let newGhostY = ghost.y;
-
-      if (direction === 'horizontal') {
-        newGhostX += Math.random() < 0.5 ? -1 : 1;
-        newGhostX = Math.max(0, Math.min(this.cols - 1, newGhostX));
-
-        // Check if the next position is a wall, if true, don't update the position
-        if (!this.isWall(newGhostX, ghost.y)) {
-          ghost.x = newGhostX;
-        }
+      // Jika ghost termakan oleh Pacman dan power time di atas 0, kembalikan ghost ke markas
+      if (this.checkGhostEaten(ghost)) {
+        this.returnGhostToHome(ghost);
       } else {
-        newGhostY += Math.random() < 0.5 ? -1 : 1;
-        newGhostY = Math.max(0, Math.min(this.rows - 1, newGhostY));
-
-        // Check if the next position is a wall, if true, don't update the position
-        if (!this.isWall(ghost.x, newGhostY)) {
-          ghost.y = newGhostY;
-        }
+        // Jika tidak, lanjutkan pergerakan biasa
+        this.moveGhost(ghost);
       }
     });
   }
+  
 
   returnGhostToHome(ghost) {
     ghost.x = this.ghostHome.x;
@@ -285,7 +294,8 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
   }
 
   checkGhostCollision(pacman) {
-    return this.ghosts.some(ghost => pacman.x === ghost.x && pacman.y === ghost.y);
+    const collidedGhost = this.ghosts.find(ghost => pacman.x === ghost.x && pacman.y === ghost.y);
+    return collidedGhost;
   }
 
   updateScore(pacman, index) {
@@ -302,6 +312,13 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
     }
   }
 
+  checkGhostEaten(ghost) {
+    return this.pacmans.some(pacman => pacman.powerTime > 0 && this.checkCollision(pacman, ghost));
+  }
+  
+  checkCollision(pacman, ghost) {
+    return pacman.x === ghost.x && pacman.y === ghost.y;
+  }
 
 
   play() {
