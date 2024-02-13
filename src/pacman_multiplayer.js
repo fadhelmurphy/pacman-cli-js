@@ -135,7 +135,7 @@ class PacmanGame {
       }
       console.log(row);
     }
-    console.log(chalk.italic.cyan(`GH: Ghost Home, F: Fruits/Power, X: Wall, G: Ghost, C: Pacman`));
+    console.log(chalk.italic.cyan(`GH: Ghost Home, F: Fruits/Power, X: Wall, G: Ghost, C: Pacman, B: Bot Pacman`));
 console.log(chalk.blue(`Score: ${this.pacmans[0].score} Lives: ${this.pacmans[0].lives} Power Time: ${this.pacmans[0].powerTime}`));
 
 // Print information for bot pacmans
