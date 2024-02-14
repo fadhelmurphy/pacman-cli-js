@@ -166,16 +166,30 @@ isDuplicateDot(dot, dots) {
       this.score += 5; // Increase score for eating fruit
       this.pacman.powerTime = 10; // Set power time to 10 steps
     }
+
+    
+      // Check for collision with ghosts
+      const collidedGhost = this.checkGhostCollision(this.pacman);
+      if (collidedGhost) {
+        if (this.pacman.powerTime > 0) {
+          // Jika power time pacman lebih dari 0, maka ghost kembali ke markas
+          this.returnGhostToHome(collidedGhost);
+        } else {
+          this.updateScore();
+        }
+      }
   }
 
+
   checkGhostEaten(ghost) {
-    return this.pacman.x === ghost.x && this.pacman.y === ghost.y;
+    return this.pacman.powerTime > 0 && this.checkCollision(this.pacman, ghost);
   }
+
 
   moveGhosts() {
     this.ghosts.forEach((ghost) => {
       // Jika ghost termakan oleh Pacman dan power time di atas 0, kembalikan ghost ke markas
-      if (this.checkGhostEaten(ghost) && this.pacman.powerTime > 0) {
+      if (this.checkGhostEaten(ghost)) {
         this.returnGhostToHome(ghost);
       } else {
         // Jika tidak, lanjutkan pergerakan biasa
@@ -213,29 +227,22 @@ isDuplicateDot(dot, dots) {
     }
   }
 
-  checkCollision() {
-    return (
-      this.ghosts.some(ghost => this.pacman.x === ghost.x && this.pacman.y === ghost.y) ||
-      (this.pacman.powerTime === 0 && this.ghosts.some(ghost => this.pacman.x === ghost.x && this.pacman.y === ghost.y))
-    );
+  checkGhostCollision(pacman) {
+    const collidedGhost = this.ghosts.find(ghost => pacman.x === ghost.x && pacman.y === ghost.y);
+    return collidedGhost;
+  }
+
+  checkCollision(pacman, ghost) {
+    return pacman.x === ghost.x && pacman.y === ghost.y;
   }
 
   updateScore() {
-    if (this.checkCollision()) {
-      if (this.pacman.powerTime > 0) {
-        // Jika power time pacman lebih dari 0, ghost kembali ke markas
-        this.ghosts.forEach((ghost) => {
-          ghost.x = this.ghostHome.x;
-          ghost.y = this.ghostHome.y;
-        });
-      } else {
-        // Jika tidak, kurangi nyawa
-        this.lives--;
-        if (this.lives <= 0) {
-          console.log(chalk.red('Game Over! No lives left.'));
-          process.exit();
-        }
-      }
+    if (this.lives > 0) {
+      this.lives--;
+    }
+    if (this.lives == 0) {
+      console.log(chalk.red('Game Over! No lives left.'));
+      process.exit();
     }
   }
 
@@ -245,7 +252,6 @@ isDuplicateDot(dot, dots) {
       this.printBoard();
       this.movePacman();
       this.moveGhosts();
-      this.updateScore();
 
       if (this.dots.length === 0) {
         console.log(chalk.green('Congratulations! You ate all the dots. Game Over!'));
