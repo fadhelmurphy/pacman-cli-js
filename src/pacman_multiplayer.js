@@ -1,26 +1,26 @@
 const prompt = require('prompt-sync')();
 const chalk = require('chalk');
 
-  // Add this at the beginning of your script
-  const pacmanColors = ['yellow'];
+// Add this at the beginning of your script
+const pacmanColors = ['yellow'];
 
 class PacmanGame {
-    constructor(rows, cols, lives, numGhosts, numPacmans) {
-        this.rows = rows;
-        this.cols = cols;
-        this.lives = lives;
-        this.pacmans = this.generatePacmans(numPacmans);
-        this.ghosts = this.generateGhosts(numGhosts);
-        this.walls = this.generateWalls();
-        this.dots = this.generateDots();
-        this.fruits = [];
-        this.score = 0;
-        this.lastMove = ''; // Variable untuk menyimpan input terakhir
-        this.ghostHome = [
-          { x: Math.floor(cols / 2), y: Math.floor(rows / 2) },
-          { x: Math.floor(cols / 2) + 1, y: Math.floor(rows / 2) }
-      ]; // Markas utama ghost
-      }
+  constructor(rows, cols, lives, numGhosts, numPacmans) {
+    this.rows = rows;
+    this.cols = cols;
+    this.lives = lives;
+    this.pacmans = this.generatePacmans(numPacmans);
+    this.ghosts = this.generateGhosts(numGhosts);
+    this.walls = this.generateWalls();
+    this.dots = this.generateDots();
+    this.fruits = [];
+    this.score = 0;
+    this.lastMove = ''; // Variable untuk menyimpan input terakhir
+    this.ghostHome = [
+      { x: Math.floor(cols / 2), y: Math.floor(rows / 2) },
+      { x: Math.floor(cols / 2) + 1, y: Math.floor(rows / 2) }
+    ]; // Markas utama ghost
+  }
 
   generateWalls() {
     const walls = [];
@@ -35,18 +35,18 @@ class PacmanGame {
     const totalDots = Math.floor(this.rows * this.cols * 0.9);
 
     for (let i = 0; i < totalDots; i++) {
-        let dot;
-        do {
-            dot = { x: Math.floor(Math.random() * this.cols), y: Math.floor(Math.random() * this.rows), eaten: false };
-        } while (this.isWall(dot.x, dot.y) || this.isDot(dot.x, dot.y) || (dot.x === 0 && dot.y === 0) || this.isDuplicateDot(dot, dots));
-        dots.push(dot);
+      let dot;
+      do {
+        dot = { x: Math.floor(Math.random() * this.cols), y: Math.floor(Math.random() * this.rows), eaten: false };
+      } while (this.isWall(dot.x, dot.y) || this.isDot(dot.x, dot.y) || (dot.x === 0 && dot.y === 0) || this.isDuplicateDot(dot, dots));
+      dots.push(dot);
     }
     return dots;
-}
+  }
 
-isDuplicateDot(dot, dots) {
+  isDuplicateDot(dot, dots) {
     return dots.some(existingDot => existingDot.x === dot.x && existingDot.y === dot.y);
-}
+  }
 
   generateGhosts(numGhosts) {
     const ghosts = [];
@@ -83,7 +83,7 @@ isDuplicateDot(dot, dots) {
 
   generatePacmans(numPacmans) {
     const pacmans = [];
-  
+
     // Generate human-controlled Pacman
     pacmans.push({
       x: 0,
@@ -94,7 +94,7 @@ isDuplicateDot(dot, dots) {
       powerTime: 0,
       color: 'yellow', // Assign color for the human-controlled Pacman
     });
-  
+
     // Generate bot-controlled Pacmans
     for (let i = 0; i < numPacmans - 1; i++) {
       pacmans.push({
@@ -108,14 +108,14 @@ isDuplicateDot(dot, dots) {
         color: pacmanColors[i % pacmanColors.length], // Assign color for bot-controlled Pacman
       });
     }
-  
+
     return pacmans;
   }
 
-    // Fungsi untuk mengecek apakah suatu posisi adalah markas utama ghost
-    isGhostHome(x, y) {
-      return this.ghostHome.some(home => home.x === x && home.y === y);
-    }
+  // Fungsi untuk mengecek apakah suatu posisi adalah markas utama ghost
+  isGhostHome(x, y) {
+    return this.ghostHome.some(home => home.x === x && home.y === y);
+  }
 
   printBoard() {
     for (let i = 0; i < this.rows; i++) {
@@ -126,60 +126,43 @@ isDuplicateDot(dot, dots) {
         const isGhostHomeH = this.ghostHome[1].x === j && this.ghostHome[1].y === i;
         if (pacman) {
           const color = pacman.isBot ? this.getBotColor(pacman.botIndex) : 'yellow';
-          row += this.getColorText(color, `${pacman.isBot ? 'B ' : 'C '}`);
+          row += chalk[color]`${pacman.isBot ? 'B ' : 'C '}`;
         } else if (isGhostHomeG) {
-          row += chalk.bgMagenta('G '); // Ghost Home
+          row += chalk.bgMagenta`G `; // Ghost Home
         } else if (isGhostHomeH) {
-          row += chalk.bgMagenta('H '); // Ghost Home
+          row += chalk.bgMagenta`H `; // Ghost Home
         } else if (this.ghosts.some(ghost => ghost.x === j && ghost.y === i)) {
           const ghost = this.ghosts.find(ghost => ghost.x === j && ghost.y === i);
-          row += chalk[ghost.color]('G '); // Ghost with specified color
+          row += chalk[ghost.color]`G `; // Ghost with specified color
         } else if (this.isWall(j, i)) {
-          row += chalk.gray('X '); // Wall
+          row += chalk.gray`X `; // Wall
         } else if (this.isDot(j, i)) {
-          row += chalk.cyanBright('. '); // Dot
+          row += chalk.cyanBright`. `; // Dot
         } else if (this.isFruit(j, i)) {
-          row += chalk.rgb(255, 165, 0)('F '); // Fruit
+          row += chalk.rgb(255, 165, 0)`F `; // Fruit
         } else {
-          row += chalk.hidden('. ');
+          row += chalk.hidden`. `;
         }
       }
       console.log(row);
     }
     console.log(chalk.italic.cyan(`GH: Ghost Home, F: Fruits/Power, X: Wall, G: Ghost, C: Pacman, B: Bot Pacman`));
-console.log(chalk.blue(`Score: ${this.pacmans[0].score} Lives: ${this.pacmans[0].lives} Power Time: ${this.pacmans[0].powerTime}`));
+    console.log(chalk.blue(`Score: ${this.pacmans[0].score} Lives: ${this.pacmans[0].lives} Power Time: ${this.pacmans[0].powerTime}`));
 
-// Print information for bot pacmans
-this.pacmans.slice(1).forEach((botPacman, index) => {
-  const color = this.getBotColor(index);
-  console.log(this.getColorText(color, `${botPacman.isBot ? 'Bot Pacman ' : 'Pacman '} ${index + 1} - Score: ${botPacman.score} Lives: ${botPacman.lives} Power Time: ${botPacman.powerTime}`));
-});
+    // Print information for bot pacmans
+    this.pacmans.slice(1).forEach((botPacman, index) => {
+      const color = this.getBotColor(index);
+      console.log(chalk[color]`${botPacman.isBot ? 'Bot Pacman ' : 'Pacman '} ${index + 1} - Score: ${botPacman.score} Lives: ${botPacman.lives} Power Time: ${botPacman.powerTime}`);
+    });
   }
-  
-  getColorText(color, text) {
-    switch (color) {
-      case 'yellow':
-        return chalk.yellow(text);
-      case 'green':
-        return chalk.green(text);
-      case 'blue':
-        return chalk.blue(text);
-      case 'magenta':
-        return chalk.magenta(text);
-      case 'cyan':
-        return chalk.cyan(text);
-      default:
-        return text;
-    }
-  }
-  
+
   getBotColor(index) {
     return pacmanColors[index % pacmanColors.length];
   }
 
   moveGhost(ghost) {
     const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
-  
+
     if (direction === 'horizontal') {
       this.moveHorizontal(ghost);
     } else {
@@ -193,7 +176,7 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
       ghost.x = Math.max(0, Math.min(this.cols - 1, newGhostX));
     }
   }
-  
+
   moveVertical(ghost) {
     const newGhostY = ghost.y + (Math.random() < 0.5 ? -1 : 1);
     if (!this.isWall(ghost.x, newGhostY)) {
@@ -206,21 +189,21 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
       if (pacman.powerTime > 0) {
         pacman.powerTime--;
       }
-  
+
       let direction;
       if (pacman.isBot) {
-        direction = this.getBotDirection(pacman);
+        direction = this.getBotDirection();
       } else {
         direction = prompt('Tekan tombol (W/A/S/D) untuk bergerak dan Q untuk keluar: ');
       }
-  
+
       // Jika Enter ditekan, gunakan input terakhir
       if (direction === '') {
         direction = pacman.lastMove;
       } else {
         pacman.lastMove = direction; // Perbarui input terakhir jika bukan Enter
       }
-  
+
       switch (direction.toLowerCase()) {
         case 'w':
           if (!this.isWall(pacman.x, pacman.y - 1)) {
@@ -248,14 +231,14 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
         default:
           console.log('Invalid move!');
       }
-  
+
       // Check for eating dots
       const eatenDotIndex = this.dots.findIndex(dot => dot.x === pacman.x && dot.y === pacman.y);
       if (eatenDotIndex !== -1) {
         this.dots.splice(eatenDotIndex, 1);
         pacman.score++;
       }
-  
+
       // Check for eating fruits
       const eatenFruitIndex = this.fruits.findIndex(fruit => fruit.x === pacman.x && fruit.y === pacman.y);
       if (eatenFruitIndex !== -1) {
@@ -263,7 +246,7 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
         pacman.score += 5; // Increase score for eating fruit
         pacman.powerTime = 10; // Set power time to 10 steps
       }
-  
+
       // Check for collision with ghosts
       const collidedGhost = this.checkGhostCollision(pacman);
       if (collidedGhost) {
@@ -276,10 +259,10 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
       }
     });
   }
-  
 
 
-  getBotDirection(botPacman) {
+
+  getBotDirection() {
     // Implement your bot logic here
     // For simplicity, the bot moves randomly in this example
     const directions = ['w', 'a', 's', 'd'];
@@ -297,12 +280,12 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
       }
     });
   }
-  
+
 
   returnGhostToHome(ghost) {
     ghost.x = this.ghostHome[0].x;
     ghost.y = this.ghostHome[0].y;
-}
+  }
 
   checkGhostCollision(pacman) {
     const collidedGhost = this.ghosts.find(ghost => pacman.x === ghost.x && pacman.y === ghost.y);
@@ -326,7 +309,7 @@ this.pacmans.slice(1).forEach((botPacman, index) => {
   checkGhostEaten(ghost) {
     return this.pacmans.some(pacman => pacman.powerTime > 0 && this.checkCollision(pacman, ghost));
   }
-  
+
   checkCollision(pacman, ghost) {
     return pacman.x === ghost.x && pacman.y === ghost.y;
   }

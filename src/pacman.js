@@ -16,7 +16,7 @@ class PacmanGame {
     this.ghostHome = [
       { x: Math.floor(cols / 2), y: Math.floor(rows / 2) },
       { x: Math.floor(cols / 2) + 1, y: Math.floor(rows / 2) }
-  ]; // Markas utama ghost
+    ]; // Markas utama ghost
   }
 
   generateWalls() {
@@ -32,23 +32,23 @@ class PacmanGame {
     const totalDots = Math.floor(this.rows * this.cols * 0.9);
 
     for (let i = 0; i < totalDots; i++) {
-        let dot;
-        do {
-            dot = { x: Math.floor(Math.random() * this.cols), y: Math.floor(Math.random() * this.rows), eaten: false };
-        } while (this.isWall(dot.x, dot.y) || this.isDot(dot.x, dot.y) || (dot.x === 0 && dot.y === 0) || this.isDuplicateDot(dot, dots));
-        dots.push(dot);
+      let dot;
+      do {
+        dot = { x: Math.floor(Math.random() * this.cols), y: Math.floor(Math.random() * this.rows), eaten: false };
+      } while (this.isWall(dot.x, dot.y) || this.isDot(dot.x, dot.y) || (dot.x === 0 && dot.y === 0) || this.isDuplicateDot(dot, dots));
+      dots.push(dot);
     }
     return dots;
-}
+  }
 
-isDuplicateDot(dot, dots) {
+  isDuplicateDot(dot, dots) {
     return dots.some(existingDot => existingDot.x === dot.x && existingDot.y === dot.y);
-}
+  }
 
   generateGhosts(numGhosts) {
     const ghosts = [];
     const ghostColors = ['red', 'green', 'blue', 'magenta'];
-    
+
     for (let i = 0; i < numGhosts; i++) {
       ghosts.push({ x: Math.floor(Math.random() * this.cols), y: Math.floor(Math.random() * this.rows), color: ghostColors[i] });
     }
@@ -88,22 +88,22 @@ isDuplicateDot(dot, dots) {
         const isGhostHomeG = this.ghostHome[0].x === j && this.ghostHome[0].y === i;
         const isGhostHomeH = this.ghostHome[1].x === j && this.ghostHome[1].y === i;
         if (this.pacman.x === j && this.pacman.y === i) {
-          row += chalk.yellow('C '); // Pacman
+          row += chalk.yellow`C `; // Pacman
         } else if (isGhostHomeG) {
-          row += chalk.bgMagenta('G '); // Ghost Home
+          row += chalk.bgMagenta`G `; // Ghost Home
         } else if (isGhostHomeH) {
-          row += chalk.bgMagenta('H '); // Ghost Home
+          row += chalk.bgMagenta`H `; // Ghost Home
         } else if (this.isGhost(j, i)) {
-        const ghost = this.ghosts.find(ghost => ghost.x === j && ghost.y === i);
-        row += chalk[ghost.color]('G '); // Ghost with specified color
+          const ghost = this.ghosts.find(ghost => ghost.x === j && ghost.y === i);
+          row += chalk[ghost.color]`G `; // Ghost with specified color
         } else if (this.isWall(j, i)) {
-          row += chalk.gray('X '); // Wall
+          row += chalk.gray`X `; // Wall
         } else if (this.isDot(j, i)) {
-          row += chalk.cyanBright('. '); // Dot
+          row += chalk.cyanBright`. `; // Dot
         } else if (this.isFruit(j, i)) {
-          row += chalk.rgb(255, 165, 0)('F '); // Fruit
+          row += chalk.rgb(255, 165, 0)`F `; // Fruit
         } else {
-          row += chalk.hidden('. ');
+          row += chalk.hidden`. `;
         }
       }
       console.log(row);
@@ -111,7 +111,7 @@ isDuplicateDot(dot, dots) {
     console.log(chalk.italic.cyan(`GH: Ghost Home, F: Fruits/Power, X: Wall, G: Ghost, C: Pacman`))
     console.log(chalk.blue(`Score: ${this.score} Lives: ${this.lives} Power Time: ${this.pacman.powerTime}`));
   }
-  
+
   movePacman() {
     if (this.pacman.powerTime > 0) {
       this.pacman.powerTime--;
@@ -167,17 +167,17 @@ isDuplicateDot(dot, dots) {
       this.pacman.powerTime = 10; // Set power time to 10 steps
     }
 
-    
-      // Check for collision with ghosts
-      const collidedGhost = this.checkGhostCollision(this.pacman);
-      if (collidedGhost) {
-        if (this.pacman.powerTime > 0) {
-          // Jika power time pacman lebih dari 0, maka ghost kembali ke markas
-          this.returnGhostToHome(collidedGhost);
-        } else {
-          this.updateScore();
-        }
+
+    // Check for collision with ghosts
+    const collidedGhost = this.checkGhostCollision(this.pacman);
+    if (collidedGhost) {
+      if (this.pacman.powerTime > 0) {
+        // Jika power time pacman lebih dari 0, maka ghost kembali ke markas
+        this.returnGhostToHome(collidedGhost);
+      } else {
+        this.updateScore();
       }
+    }
   }
 
 
@@ -248,7 +248,7 @@ isDuplicateDot(dot, dots) {
 
   play() {
     while (true) {
-        process.stdout.write('\x1bc');
+      process.stdout.write('\x1bc');
       this.printBoard();
       this.movePacman();
       this.moveGhosts();
